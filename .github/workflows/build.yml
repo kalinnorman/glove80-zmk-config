@@ -1,0 +1,55 @@
+name: Build
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        attr:
+          - glove80_combined
+          - glove80_dongle_xiao
+          - glove80_dongle_left
+          - glove80_dongle_right
+          - glove80_settings_reset_xiao
+          - glove80_settings_reset_left
+          - glove80_settings_reset_right
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          # Our customized firmware fork, not moergo-sc/zmk directly - this
+          # is where the dongle shield and RGB battery indicator code live.
+          repository: kalinnorman/zmk_glove80
+          ref: xiao-ble-dongle-rgb
+          path: src
+      - uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-22.05
+      - uses: cachix/cachix-action@v15
+        with:
+          name: moergo-glove80-zmk-dev
+          skipPush: true
+      - name: Build ${{ matrix.attr }}
+        run: nix-build config -A ${{ matrix.attr }} -o result
+      - name: Copy result out of nix store
+        run: cp result/zmk.uf2 ${{ matrix.attr }}.uf2
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.attr }}.uf2
+          path: ${{ matrix.attr }}.uf2
+
+  bundle:
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge firmware artifacts into one download
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: glove80-firmware
+          pattern: "*.uf2"
+          delete-merged: true
