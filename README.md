@@ -44,4 +44,33 @@ nix-build config -A glove80_combined -o result
 
 ## Flashing
 
-Same procedure as the firmware fork's own Glove80/dongle setup: double-reset the target (LH half, RH half, or the XIAO dongle) into its UF2 bootloader, then copy the matching `.uf2` file onto the drive that appears. Flash the matching `glove80_settings_reset_*` image first if a board was previously paired in a different role (e.g. switching a half between dongle-peripheral and standalone-central mode).
+### Entering bootloader mode
+
+Each half (and the XIAO dongle) needs to be put into UF2 bootloader mode individually before you can copy firmware onto it. The keymap here has no `&bootloader` binding anywhere, so the **power-on key combo** below is the way to do it for the Glove80 halves - it's handled by the bootloader itself, below ZMK, so it works no matter what firmware (or lack of working firmware) is currently on the half:
+
+![alt text](bootloader-power-up-method.png)
+(Image credit: [MoErgo](https://docs.moergo.com/glove80-user-guide/customizing-key-layout/))
+
+For the Glove80 halves:
+
+1. Power off the half.
+2. Plug the half into the computer via USB.
+3. Hold down two keys highlighted in the image above (matrix position `C6R6` + `C3R3`):
+   - the bottom-outer-most key (pinky), plus the middle finger key one row above the home row.
+4. While still holding both keys, swith on the power of the half.
+5. A USB mass-storage drive should appear on your computer (`GLV80LHBOOT`/`GLV80RHBOOT`) and you can release the held keys.
+
+See [Moergo's own docs](https://docs.moergo.com/glove80-user-guide/customizing-key-layout/) ("Putting Glove80 into Bootloader for firmware loading") for their coverage.
+
+For the XIAO BLE dongle:
+
+1. Locate the reset button.
+2. Ensure that the dongle is plugged into the computer via USB.
+3. Double tap the reset button.
+4. A USB mass-storage drive should appear on your computer.
+
+### Copying the firmware
+
+Once a target is in bootloader mode, copy the matching `.uf2` file onto the drive that appeared. The drive disappears on its own once the flash completes and the board reboots - no need to safely-eject first. (If Windows shows an "operation interrupted" error mid-copy, that's just a timing quirk - the flash already succeeded by that point.)
+
+Flash the matching `glove80_settings_reset_*` image first if a board was previously paired in a different role (e.g. switching a half between dongle-peripheral and standalone-central mode), otherwise you can just flash the new keymap file to both halves with no settings reset necessary.
