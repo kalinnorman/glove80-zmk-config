@@ -35,7 +35,7 @@ jobs:
       - name: Build ${{ matrix.attr }}
         run: nix-build config -A ${{ matrix.attr }} -o result
       - name: Copy result out of nix store
-        run: cp result/zmk.uf2 ${{ matrix.attr }}.uf2
+        run: cp result/*.uf2 ${{ matrix.attr }}.uf2
       - name: Upload result
         uses: actions/upload-artifact@v4
         with:
