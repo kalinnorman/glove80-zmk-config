@@ -69,7 +69,13 @@
 
         question {
             bindings = <&kp QUESTION>;
-            key-positions = <38 41>;
+            key-positions = <39 40>;
+            layers = <0>;
+        };
+
+        slash {
+            bindings = <&kp SLASH>;
+            key-positions = <69 74>;
             layers = <0>;
         };
 
