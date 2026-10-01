@@ -35,9 +35,17 @@ in {
 
   glove80_combined = firmware.combine_uf2 glove80_left glove80_right "glove80";
 
-  # The dongle firmware itself and the settings_reset images don't depend on
-  # this repo's keymap at all, so just forward the firmware fork's own attrs.
-  glove80_dongle_xiao = firmware.glove80_dongle_xiao;
+  # The XIAO is the split-central in dongle mode - it's what actually runs the
+  # keymap logic (layers/combos/hold-taps), so it needs this repo's keymap too,
+  # unlike the LH/RH peripherals above (keymap content on a peripheral is unused).
+  glove80_dongle_xiao = firmware.zmk.override {
+    board = "seeeduino_xiao_ble";
+    shield = "glove80_dongle";
+    keymap = "${config}/glove80.keymap";
+  };
+
+  # The settings_reset images don't run any keymap logic at all, so just
+  # forward the firmware fork's own attrs.
   glove80_settings_reset_xiao = firmware.glove80_settings_reset_xiao;
   glove80_settings_reset_left = firmware.glove80_settings_reset_left;
   glove80_settings_reset_right = firmware.glove80_settings_reset_right;

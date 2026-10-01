@@ -44,6 +44,16 @@ nix-build config -A glove80_combined -o result
 
 ## Flashing
 
+### Which targets need reflashing
+
+In the dongle setup, the XIAO is the BLE split-central - it's the only device that actually evaluates your keymap (layers, combos, hold-taps, bindings). The LH/RH halves run as peripherals: they just scan their own matrix and report raw key-position events to the XIAO over BLE, so the keymap content compiled into their firmware is never used.
+
+- **Keymap-only change** (edited `config/glove80.keymap` - layers, combos, hold-taps, key bindings): reflash **`glove80_dongle_xiao` only**. The LH/RH halves don't need to change.
+- **Kconfig or firmware-level change** (e.g. `glove80_lh_dongle_peripheral.conf`, the dongle shield itself, RGB/battery indicator code, or a new ZMK/firmware-fork version): reflash whichever of `glove80_dongle_left`/`glove80_dongle_right`/`glove80_dongle_xiao` actually changed.
+- **`glove80_settings_reset_*`**: only needed when a half's BLE pairing/role needs clearing (see below) - not part of routine updates.
+
+If in doubt, reflashing all three is harmless, just slower.
+
 ### Entering bootloader mode
 
 Each half (and the XIAO dongle) needs to be put into UF2 bootloader mode individually before you can copy firmware onto it. The keymap here has no `&bootloader` binding anywhere, so the **power-on key combo** below is the way to do it for the Glove80 halves - it's handled by the bootloader itself, below ZMK, so it works no matter what firmware (or lack of working firmware) is currently on the half:
@@ -73,4 +83,4 @@ For the XIAO BLE dongle:
 
 Once a target is in bootloader mode, copy the matching `.uf2` file onto the drive that appeared. The drive disappears on its own once the flash completes and the board reboots - no need to safely-eject first. (If Windows shows an "operation interrupted" error mid-copy, that's just a timing quirk - the flash already succeeded by that point.)
 
-Flash the matching `glove80_settings_reset_*` image first if a board was previously paired in a different role (e.g. switching a half between dongle-peripheral and standalone-central mode), otherwise you can just flash the new keymap file to both halves with no settings reset necessary.
+Flash the matching `glove80_settings_reset_*` image first if a board was previously paired in a different role (e.g. switching a half between dongle-peripheral and standalone-central mode) - otherwise no settings reset is necessary, see "Which targets need reflashing" above for what actually needs a new `.uf2`.
